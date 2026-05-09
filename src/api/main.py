@@ -9,12 +9,14 @@ if os.path.exists('models/lstm_best.pt'):
 model.eval()
 import pandas as pd
 from fastapi.responses import HTMLResponse
-import subprocess, threading, logging
+import subprocess, threading, logging, sys
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 def run_pipeline():
+    env = os.environ.copy()
+    env['PYTHONPATH'] = '/app'
     stages = [
         ['python', 'src/ingestion/run_all.py'],
         ['python', 'src/sentiment/run.py'],
@@ -22,12 +24,13 @@ def run_pipeline():
     ]
     for cmd in stages:
         log.info(f'Running: {cmd}')
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd='/app', env=env)
         log.info(f'STDOUT: {result.stdout}')
         log.error(f'STDERR: {result.stderr}')
         if result.returncode != 0:
             log.error(f'Stage failed: {cmd}')
             return
+    log.info('Pipeline complete!')
 
 @app.on_event('startup')
 async def startup_event():
