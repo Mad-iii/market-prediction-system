@@ -25,6 +25,14 @@ def get_latest():
         df.index.name = "timestamp"
         return df.tail(50).reset_index().to_dict(orient="records")
     return {"error": "No data available"}
+    
+@app.get("/metrics")
+def get_metrics():
+    import json
+    if os.path.exists("data/processed/metrics.json"):
+        with open("data/processed/metrics.json", "r") as f:
+            return json.load(f)
+    return {"f1_score": "N/A", "rmse": "N/A"}
 
 @app.post("/predict")
 def predict(data: dict):
