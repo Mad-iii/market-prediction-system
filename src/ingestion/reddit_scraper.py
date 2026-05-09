@@ -2,11 +2,16 @@
 import praw
 import pandas as pd
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 def fetch_reddit_posts(subreddits=["wallstreetbets", "investing", "stocks"], limit=100):
     reddit = praw.Reddit(
-        client_id="YOUR_ID",
-        client_secret="YOUR_SECRET",
-        user_agent="market_predictor"
+        client_id=os.getenv("REDDIT_CLIENT_ID"),
+        client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
+        user_agent=os.getenv("REDDIT_USER_AGENT", "market_predictor")
     )
     posts = []
     for sub in subreddits:

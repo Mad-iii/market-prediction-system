@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from src.ingestion.yahoo_finance import fetch_price_data
-from src.ingestion.reuters_rss import fetch_reuters_news
+from src.ingestion.reuters_rss import fetch_news_rss
 from src.ingestion.reddit_scraper import fetch_reddit_posts
 from src.ingestion.twitter_scraper import fetch_tweets
 
@@ -14,13 +14,13 @@ def main():
     except Exception as e:
         print(f"Error fetching prices: {e}")
 
-    print("Fetching Reuters news...")
+    print("Fetching News RSS feeds...")
     try:
-        news = fetch_reuters_news()
+        news = fetch_news_rss()
         news.to_csv("data/raw/reuters.csv", index=False)
         print("News saved.")
     except Exception as e:
-        print(f"Error fetching Reuters news: {e}")
+        print(f"Error fetching news RSS: {e}")
 
     print("Fetching Reddit posts...")
     try:
