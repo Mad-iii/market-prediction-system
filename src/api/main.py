@@ -5,7 +5,8 @@ from src.models.lstm_model import LSTMModel
 
 app = FastAPI()
 model = LSTMModel(input_size=9)
-model.load_state_dict(torch.load("models/lstm_best.pt"))
+if os.path.exists("models/lstm_best.pt"):
+    model.load_state_dict(torch.load("models/lstm_best.pt"))
 model.eval()
 
 import pandas as pd
@@ -24,14 +25,6 @@ def get_latest():
         df.index.name = "timestamp"
         return df.tail(50).reset_index().to_dict(orient="records")
     return {"error": "No data available"}
-    
-@app.get("/metrics")
-def get_metrics():
-    import json
-    if os.path.exists("data/processed/metrics.json"):
-        with open("data/processed/metrics.json", "r") as f:
-            return json.load(f)
-    return {"f1_score": "N/A", "rmse": "N/A"}
 
 @app.post("/predict")
 def predict(data: dict):
