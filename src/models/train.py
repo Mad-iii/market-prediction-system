@@ -27,9 +27,21 @@ def train_model(model, model_name, X_train, y_train, X_val, y_val,
         # Evaluate
         model.eval()
         with torch.no_grad():
-            preds = torch.sigmoid(model(X_val).squeeze()) > 0.5
-        acc = accuracy_score(y_val, preds)
-        f1  = f1_score(y_val, preds)
+            outputs = model(X_val)
+            if outputs.dim() > 1:
+                outputs = outputs.squeeze()
+            else:
+                outputs = outputs.view(-1)
+            preds = (torch.sigmoid(outputs) > 0.5).cpu().numpy()
+            y_true = y_val.cpu().numpy()
+            
+            # Ensure at least 1D for sklearn metrics
+            import numpy as np
+            preds = np.atleast_1d(preds)
+            y_true = np.atleast_1d(y_true)
+            
+        acc = accuracy_score(y_true, preds)
+        f1  = f1_score(y_true, preds, average="weighted")
 
         mlflow.log_metrics({"accuracy": acc, "f1_score": f1})
         mlflow.pytorch.log_model(model, model_name)

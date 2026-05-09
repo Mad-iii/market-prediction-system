@@ -1,0 +1,16 @@
+yfinance
+feedparser
+praw
+tweepy
+transformers
+vaderSentiment
+pandas
+torch
+scikit-learn
+numpy
+mlflow
+dvc[s3]
+fastapi
+uvicorn
+pytest
+apache-airflow

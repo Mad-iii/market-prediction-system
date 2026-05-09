@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Predictor Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .trend {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .trend-up { color: var(--success); }
+        .trend-down { color: var(--danger); }
+
+        .chart-container {
+            grid-column: span 2;
+            height: 450px;
+            position: relative;
+        }
+
+        .table-container {
+            grid-column: span 3;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th {
+            text-align: left;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+
+        #mainChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .sentiment-tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .sentiment-pos { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .sentiment-neg { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .sentiment-neu { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .chart-container, .table-container { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i data-lucide="line-chart"></i>
+                <span>MarketMind AI</span>
+            </div>
+            <div class="status-badge">
+                <i data-lucide="check-circle" size="16"></i>
+                <span>System Live: Real-Time Prediction Active</span>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Latest Close (S&P 500)</span>
+                    <i data-lucide="activity" class="trend-up"></i>
+                </div>
+                <div class="card-value" id="current-price">$0.00</div>
+                <div class="trend trend-up">
+                    <i data-lucide="trending-up" size="14"></i>
+                    <span id="price-change">+0.00%</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Sentiment Score</span>
+                    <i data-lucide="message-square" style="color: var(--accent)"></i>
+                </div>
+                <div class="card-value" id="sentiment-score">0.00</div>
+                <div class="trend" id="sentiment-trend">
+                    <span>Market Mood: Neutral</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Next Hour Prediction</span>
+                    <i data-lucide="brain-circuit" style="color: var(--secondary)"></i>
+                </div>
+                <div class="card-value" id="prediction">-</div>
+                <div class="trend">
+                    <span id="confidence">Confidence: 0%</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Model Performance</span>
+                    <i data-lucide="gauge" style="color: var(--success)"></i>
+                </div>
+                <div class="card-value" id="f1-score" style="font-size: 1.5rem">F1: -</div>
+                <div class="trend">
+                    <span id="rmse-val">RMSE: -</span>
+                </div>
+            </div>
+
+            <div class="card chart-container">
+                <div class="card-header">
+                    <span class="card-title">Price & Sentiment Correlation</span>
+                </div>
+                <canvas id="mainChart"></canvas>
+            </div>
+
+            <div class="card table-container">
+                <div class="card-header">
+                    <span class="card-title">Recent Market Data Points</span>
+                </div>
+                <table id="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Close</th>
+                            <th>Volume</th>
+                            <th>Sent. Score</th>
+                            <th>Pos</th>
+                            <th>Neg</th>
+                            <th>Neu</th>
+                            <th>Direction</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-body">
+                        <!-- Data will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/latest');
+                const data = await response.json();
+                if (data.error) return;
+
+                updateDashboard(data);
+                fetchMetrics();
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        async function fetchMetrics() {
+            try {
+                const response = await fetch('/metrics');
+                const data = await response.json();
+                document.getElementById('f1-score').innerText = `F1: ${data.f1_score}`;
+                document.getElementById('rmse-val').innerText = `RMSE: ${data.rmse}`;
+            } catch (e) {
+                console.error("Error fetching metrics:", e);
+            }
+        }
+
+        function updateDashboard(data) {
+            if (!data || data.length === 0) return;
+            const latest = data[data.length - 1];
+            
+            // Update Stats
+            document.getElementById('current-price').innerText = `$${parseFloat(latest.Close).toFixed(2)}`;
+            document.getElementById('sentiment-score').innerText = parseFloat(latest.sentiment_score).toFixed(2);
+            
+            const prevClose = data[data.length - 2]?.Close || latest.Close;
+            const change = ((latest.Close - prevClose) / prevClose * 100).toFixed(2);
+            document.getElementById('price-change').innerText = `${change >= 0 ? '+' : ''}${change}%`;
+            
+            const mood = latest.sentiment_score > 0.1 ? 'Bullish' : (latest.sentiment_score < -0.1 ? 'Bearish' : 'Neutral');
+            document.getElementById('sentiment-trend').innerHTML = `<span>Market Mood: ${mood}</span>`;
+
+            // Update Table (Newest First)
+            const tbody = document.getElementById('data-body');
+            tbody.innerHTML = '';
+            [...data].reverse().forEach(row => {
+                const tr = document.createElement('tr');
+                const date = new Date(row.timestamp).toLocaleString();
+                tr.innerHTML = `
+                    <td>${date}</td>
+                    <td>$${parseFloat(row.Close).toFixed(2)}</td>
+                    <td>${row.Volume}</td>
+                    <td>${parseFloat(row.sentiment_score).toFixed(3)}</td>
+                    <td>${row.positive}</td>
+                    <td>${row.negative}</td>
+                    <td>${row.neutral}</td>
+                    <td><span class="sentiment-tag ${row.direction ? 'sentiment-pos' : 'sentiment-neg'}">${row.direction ? 'UP' : 'DOWN'}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update Chart (Oldest First)
+            updateChart(data);
+            
+            // Run Prediction
+            runPrediction(data);
+        }
+
+        async function runPrediction(data) {
+            console.log("Checking prediction eligibility. Data length:", data.length);
+            if (data.length < 24) {
+                document.getElementById('prediction').innerText = "NEED DATA";
+                document.getElementById('confidence').innerText = `Need 24h, got ${data.length}h`;
+                return;
+            }
+
+            const seq = data.slice(-24).map(row => [
+                row.Open, row.High, row.Low, row.Close, row.Volume,
+                row.positive, row.negative, row.neutral, row.sentiment_score
+            ]);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ features: seq })
+                });
+                const result = await response.json();
+                
+                const predEl = document.getElementById('prediction');
+                predEl.innerText = result.direction.toUpperCase();
+                predEl.style.color = result.direction === 'up' ? 'var(--success)' : 'var(--danger)';
+                document.getElementById('confidence').innerText = `Confidence: ${(result.confidence * 100).toFixed(1)}%`;
+            } catch (e) {
+                console.error("Prediction failed:", e);
+                document.getElementById('prediction').innerText = "ERROR";
+            }
+        }
+
+        let mainChart;
+        function updateChart(data) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            const labels = data.map(row => new Date(row.timestamp).toLocaleTimeString());
+            const prices = data.map(row => row.Close);
+            const sentiment = data.map(row => row.sentiment_score * 1000 + (prices[0] || 5000)); // Normalized for view
+
+            if (mainChart) mainChart.destroy();
+
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Price',
+                            data: prices,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Sentiment Score',
+                            data: data.map(row => row.sentiment_score),
+                            borderColor: '#22d3ee',
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#f8fafc' } }
+                    }
+                }
+            });
+        }
+
+        fetchData();
+        setInterval(fetchData, 60000); // Refresh every minute
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+schema: '2.0'
+stages:
+  ingest:
+    cmd: python src/ingestion/run_all.py
+    outs:
+    - path: data/raw/
+      hash: md5
+      md5: febf4cf60262c479c886e10663b1478a.dir
+      size: 72238
+      nfiles: 2
+  sentiment:
+    cmd: python src/sentiment/run.py
+    deps:
+    - path: data/raw/
+      hash: md5
+      md5: febf4cf60262c479c886e10663b1478a.dir
+      size: 72238
+      nfiles: 2
+    outs:
+    - path: data/labeled/
+      hash: md5
+      md5: 02235c2d1f96edd23b6aa54b3ce8a902.dir
+      size: 61014
+      nfiles: 1
+  timeseries:
+    cmd: python src/timeseries/run.py
+    deps:
+    - path: data/labeled/
+      hash: md5
+      md5: 02235c2d1f96edd23b6aa54b3ce8a902.dir
+      size: 61014
+      nfiles: 1
+    outs:
+    - path: data/processed/
+      hash: md5
+      md5: b8503f7617d367c89f9db02b83a0f58d.dir
+      size: 3219
+      nfiles: 1
+  train:
+    cmd: python src/models/run_train.py
+    deps:
+    - path: data/processed/
+      hash: md5
+      md5: b8503f7617d367c89f9db02b83a0f58d.dir
+      size: 3219
+      nfiles: 1
+    outs:
+    - path: models/lstm_best.pt
+      hash: md5
+      md5: ae0dc0547ee9d6fa246e378f2f4a49b2
+      size: 214245
+  evaluate:
+    cmd: python src/models/run_eval.py
+    deps:
+    - path: data/processed/
+      hash: md5
+      md5: b8503f7617d367c89f9db02b83a0f58d.dir
+      size: 3219
+      nfiles: 1
+    - path: models/lstm_best.pt
+      hash: md5
+      md5: ae0dc0547ee9d6fa246e378f2f4a49b2
+      size: 214245

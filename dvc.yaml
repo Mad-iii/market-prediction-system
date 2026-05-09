@@ -7,9 +7,13 @@ stages:
     deps: [data/raw/]
     outs: [data/labeled/]
   timeseries:
-    cmd: python src/timeseries/builder.py
+    cmd: python src/timeseries/run.py
     deps: [data/labeled/]
     outs: [data/processed/]
   train:
-    cmd: python src/models/train.py
+    cmd: python src/models/run_train.py
     deps: [data/processed/]
+    outs: [models/lstm_best.pt]
+  evaluate:
+    cmd: python src/models/run_eval.py
+    deps: [data/processed/, models/lstm_best.pt]

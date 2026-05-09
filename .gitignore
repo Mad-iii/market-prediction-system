@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data
+data/
+!data/.gitignore
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Models
+models/*.pt
+!models/placeholder
+
+# OS
+.DS_Store
+Thumbs.db
+
+# DVC
+/.dvc/config.local
+
+# Virtual Env
+venv/
+.venv/
+env/
+.env

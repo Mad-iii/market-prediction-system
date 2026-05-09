@@ -2,6 +2,29 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
+import os
+import subprocess
+
+def run_script(script_path):
+    result = subprocess.run(["python", script_path], capture_output=True, text=True, env={**os.environ, "PYTHONPATH": "."})
+    if result.returncode != 0:
+        raise Exception(f"Script {script_path} failed with error: {result.stderr}")
+    print(result.stdout)
+
+def run_ingestion():
+    run_script("src/ingestion/run_all.py")
+
+def run_sentiment():
+    run_script("src/sentiment/run.py")
+
+def run_timeseries():
+    run_script("src/timeseries/run.py")
+
+def run_training():
+    run_script("src/models/run_train.py")
+
+def run_evaluation():
+    run_script("src/models/run_eval.py")
 
 default_args = {"owner": "airflow", "retries": 1, "retry_delay": timedelta(minutes=5)}
 
