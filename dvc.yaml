@@ -1,0 +1,15 @@
+stages:
+  ingest:
+    cmd: python src/ingestion/run_all.py
+    outs: [data/raw/]
+  sentiment:
+    cmd: python src/sentiment/run.py
+    deps: [data/raw/]
+    outs: [data/labeled/]
+  timeseries:
+    cmd: python src/timeseries/builder.py
+    deps: [data/labeled/]
+    outs: [data/processed/]
+  train:
+    cmd: python src/models/train.py
+    deps: [data/processed/]
