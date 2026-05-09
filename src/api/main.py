@@ -9,7 +9,7 @@ if os.path.exists('models/lstm_best.pt'):
 model.eval()
 import pandas as pd
 from fastapi.responses import HTMLResponse
-import subprocess, threading, logging, sys
+import subprocess, threading, logging
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -21,22 +21,30 @@ def run_pipeline():
         ['python', 'src/ingestion/run_all.py'],
         ['python', 'src/sentiment/run.py'],
         ['python', 'src/timeseries/run.py'],
+        ['python', 'src/models/run_train.py'],
+        ['python', 'src/models/run_eval.py'],
     ]
     for cmd in stages:
         log.info(f'Running: {cmd}')
         result = subprocess.run(cmd, capture_output=True, text=True, cwd='/app', env=env)
         log.info(f'STDOUT: {result.stdout}')
-        log.error(f'STDERR: {result.stderr}')
+        if result.stderr:
+            log.error(f'STDERR: {result.stderr}')
         if result.returncode != 0:
             log.error(f'Stage failed: {cmd}')
             return
     log.info('Pipeline complete!')
+    # Reload model after training
+    global model
+    if os.path.exists('models/lstm_best.pt'):
+        model.load_state_dict(torch.load('models/lstm_best.pt'))
+        model.eval()
+        log.info('Model reloaded after training.')
 
 @app.on_event('startup')
 async def startup_event():
-    if not os.path.exists('data/processed/timeseries.csv'):
-        thread = threading.Thread(target=run_pipeline)
-        thread.start()
+    thread = threading.Thread(target=run_pipeline)
+    thread.start()
 
 @app.get('/', response_class=HTMLResponse)
 def read_root():
