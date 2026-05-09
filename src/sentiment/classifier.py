@@ -1,12 +1,16 @@
-# src/sentiment/classifier.py
-from transformers import pipeline
+﻿# src/sentiment/classifier.py
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-sentiment_pipeline = pipeline(
-    "text-classification",
-    model="ProsusAI/finbert"
-)
+analyzer = SentimentIntensityAnalyzer()
 
 def classify_sentiment(texts: list[str]) -> list[str]:
-    results = sentiment_pipeline(texts, truncation=True, max_length=512)
-    # Returns "positive", "negative", or "neutral"
-    return [r["label"].lower() for r in results]
+    results = []
+    for text in texts:
+        score = analyzer.polarity_scores(text)['compound']
+        if score >= 0.05:
+            results.append('positive')
+        elif score <= -0.05:
+            results.append('negative')
+        else:
+            results.append('neutral')
+    return results

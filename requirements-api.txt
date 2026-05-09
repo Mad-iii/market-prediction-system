@@ -5,9 +5,8 @@ yfinance
 pandas
 numpy
 scikit-learn
-transformers
+transformers>=4.40.0
 vaderSentiment
 feedparser
-praw
-tweepy
 mlflow
+torch>=2.6.0 --index-url https://download.pytorch.org/whl/cpu
