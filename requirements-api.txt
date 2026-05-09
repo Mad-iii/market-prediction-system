@@ -1,0 +1,13 @@
+﻿fastapi
+uvicorn[standard]
+python-dotenv
+yfinance
+pandas
+numpy
+scikit-learn
+transformers
+vaderSentiment
+feedparser
+praw
+tweepy
+mlflow
